@@ -1,0 +1,447 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jake's Christmas Wants</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #ffc0cb;           /* Christmas pink */
+      --bg-grad: linear-gradient(180deg, #ffd4de 0%, #ffc0cb 40%, #ff9fb4 100%);
+      --text: #1a1a1a;
+      --muted: #6b6b6b;
+      --white: #ffffff;
+      --accent: #e60054;       /* deep pink/red accent */
+      --accent-2: #ff6a88;     /* lighter accent */
+      --card: rgba(255,255,255,0.85);
+      --shadow: 0 10px 30px rgba(0,0,0,0.12);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --btn: #ffffff;
+      --btn-text: #1a1a1a;
+      --btn-border: rgba(0,0,0,0.08);
+      --btn-hover: #ffe8ee;
+      --link: #0a66c2;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg-grad);
+      overflow: hidden;
+    }
+
+    /* Snow canvases */
+    .snow-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0; /* behind everything */
+    }
+    #snow-bg { z-index: 0; opacity: 0.5; }
+    #snow-fg { z-index: 1; opacity: 0.9; }
+
+    /* Page layout */
+    .app {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      align-items: start;
+    }
+
+    header {
+      padding: 28px 24px 0;
+      display: flex;
+      justify-content: center;
+    }
+    .title {
+      background: var(--card);
+      backdrop-filter: blur(6px);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+    .title h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .title .tag {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* Controls bar */
+    .controls {
+      margin: 16px auto 0;
+      padding: 12px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: min(900px, calc(100% - 32px));
+      backdrop-filter: blur(6px);
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--btn-border);
+      background: var(--btn);
+      color: var(--btn-text);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .icon {
+      display: inline-flex;
+      width: 22px; height: 22px;
+      align-items: center; justify-content: center;
+      margin-right: 6px;
+    }
+
+    .volume {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid var(--btn-border);
+      border-radius: var(--radius-sm);
+    }
+    .volume input[type="range"] {
+      width: 140px;
+      accent-color: var(--accent);
+    }
+
+    /* Main grid */
+    main {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      gap: 18px;
+      width: min(1000px, 96%);
+      margin: 0 auto;
+    }
+    @media (max-width: 760px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* Modern dropdown cards */
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.9);
+    }
+    .card-title {
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .toggle {
+      appearance: none;
+      border: 1px solid var(--btn-border);
+      background: var(--white);
+      color: var(--btn-text);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 120ms ease;
+    }
+    .toggle:hover { background: var(--btn-hover); }
+    .panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 260ms ease, padding 240ms ease;
+      padding: 0 16px;
+    }
+    .panel.open {
+      padding: 14px 16px 18px;
+      max-height: 320px; /* enough space; adjust if needed */
+    }
+    .links {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 12px;
+      background: #fff;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 600;
+      transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+    .link:hover { background: #f9f9f9; transform: translateY(-1px); }
+    .link .badge {
+      background: var(--accent-2);
+      color: #fff;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    footer {
+      padding: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* Decorative sparkle divider */
+    .sparkle {
+      display: inline-block;
+      background: conic-gradient(from 180deg at 50% 50%, #fff, #ffe8ee, #fff);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 40px 10px rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- Background and foreground snow -->
+  <canvas id="snow-bg" class="snow-layer" aria-hidden="true"></canvas>
+  <canvas id="snow-fg" class="snow-layer" aria-hidden="true"></canvas>
+
+  <div class="app">
+    <header>
+      <div class="title">
+        <span class="sparkle" aria-hidden="true"></span>
+        <h1>Jake's Christmas Wants</h1>
+        <span class="tag">festive & interactive</span>
+      </div>
+    </header>
+
+    <div class="controls">
+      <button id="playPause" class="btn" aria-label="Play or pause music">
+        <span class="icon">🎶</span>Play
+      </button>
+      <button id="mute" class="btn" aria-label="Mute or unmute">
+        <span class="icon">🔇</span>Mute
+      </button>
+      <div class="volume" aria-label="Volume control">
+        <span>Vol</span>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7" />
+      </div>
+      <button id="toggleSnow" class="btn" aria-label="Toggle snow intensity">
+        <span class="icon">❄️</span>Snow+
+      </button>
+    </div>
+
+    <main>
+      <!-- Card 1 -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">Wishlist: The Walking Dead❤️</div>
+          <button class="toggle" data-target="#panel-1">Open</button>
+        </div>
+        <div id="panel-1" class="panel">
+          <p>Add your items here. You can also include links below.</p>
+          <div class="links">
+              <a class="link" href="https://efazza.com/products/the-walking-dead-michonne-s-sword?currency=USD&variant_sku_code=13313187-0-0-0-0-0-0&msclkid=86064fc2c59016ed1e5426864d967293" target="_blank" rel="noopener">
+                  <span class="badge">Link</span> Michonne's Sword❤️
+              </a>
+            <a class="link" href="https://www.amazon.com/United-Cutlery-Avalanche-Hellhound-Crossbow/dp/B08NLFKQDG/ref=sr_1_22?adgrpid=1330409645956992&dib=eyJ2IjoiMSJ9.1gg_rtBcAz7zvbxzJ-EHyV-HLmweqoKqXux8joh3K_EHDnuBY7yiPPRwB5FQNCNQmnJTvtmwoQgYpKYqs0f3gAwDJTDPXZEqa6_lR4GflgdEoFOpVTjiclB9vpp0sSl2yQYf-9GL19F1BqA4ozWDyzzv5iJYloLnzADGSRm0CVJ2McvMcBC7mNDdwO8d_Rj_S5YfztsXjU2MVCKCrYjmdnfvuyrs1NuKFIE6hBjDNu29d6DYBZmPBOxrW6TMSP38T-4iGpu_HlFBMNNtuN5YkwN92L9vblNtlBMsKWeACzg.S14UfWmnxwXqKsZOLYe0WuWyL198f_q5n85uLe4f0dw&dib_tag=se&hvadid=83150989368569&hvbmt=bp&hvdev=c&hvlocphy=100704&hvnetw=o&hvqmt=p&hvtargid=kwd-83150971812258%3Aloc-190&hydadcr=13958_13616905&keywords=daryl+dixon+cross+bow&mcid=a8d101f66c84353abb6880422be2da4c&msclkid=c21c40132e85108356f72957a6e9373d&qid=1766099058&sr=8-22" target="_blank" rel="noopener">
+              <span class="badge">Link</span> Daryls Crossbow❤️
+            </a>
+            <a class="link" href="https://www.amazon.com/Walking-12x18inches-Unframed-Decoration-Aesthetic/dp/B0CNRC3VLQ/ref=sr_1_7?crid=29RLU1BACT1S5&dib=eyJ2IjoiMSJ9.AZQmBKP9EFceZvP21P8ImhYKcxO4VWHCU_EzzQboErGXExiKWCazeRhyyEripnvQZpfUNhWLA5uXRJcEovy9GM2syiDDgn8saamPFw96uacaH1aGZ3YUv9oLlRBbqvhmapplfMDqYdkEen2u2VmbH46lufhOwfULp4vJwDER46V6kcUnPdV9ETXOyCKbsfTl9jOG1lyqgbQkcBhsuBFmnpV6PjcfJuVySP7Uc1ByUG-wj0u_tqub2mUjJQfn7BocfK0vl12frzYNeAQQqigSpcCaZ9HBUYuZUXfyCUe_I20.TEdwF2UzDjMSCKwK99NsL9miyigHhmgiBB_o3n-cCUs&dib_tag=se&keywords=The%2BWalking%2BDead%2BPosters&qid=1766099130&sprefix=the%2Bwalking%2Bdead%2Bposter%2Caps%2C133&sr=8-7&th=1" target="_blank" rel="noopener">
+              <span class="badge">Link</span> The Walking Dead Poster❤️
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card 2 -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">Wishlist: 3D Printing</div>
+          <button class="toggle" data-target="#panel-2">Open</button>
+        </div>
+        <div id="panel-2" class="panel">
+          <p>Edit this section with blankets, candles, sweaters—anything warm and snuggly.</p>
+          <div class="links">
+            <a class="link" href="https://us.store.bambulab.com/products/a1" target="_blank" rel="noopener">
+              <span class="badge">Link</span> A1 Mini 3D Printer
+            </a>
+            <a class="link" href="https://us.store.bambulab.com/products/pla-cmyk-lithophane" target="_blank" rel="noopener">
+              <span class="badge">Link</span> Filment Pack 
+            </a>
+            <a class="link" href="https://www.amazon.com" target="_blank" rel="noopener">
+              <span class="badge">Link</span> Dark Colored Filement
+            </a>
+          </div>
+        </div>
+      </section>
+
+     
+    
+
+  </div>
+
+  <!-- Audio (replace src with your own track) -->
+  <audio id="bgAudio" preload="auto" loop>
+    <!-- Drop a local file or a direct MP3 URL here -->
+    <source src="Song.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // ---------- Responsive canvases ----------
+    const bgCanvas = document.getElementById('snow-bg');
+    const fgCanvas = document.getElementById('snow-fg');
+    const bgCtx = bgCanvas.getContext('2d');
+    const fgCtx = fgCanvas.getContext('2d');
+    let W = innerWidth, H = innerHeight;
+
+    function resize() {
+      W = innerWidth;
+      H = innerHeight;
+      bgCanvas.width = W; bgCanvas.height = H;
+      fgCanvas.width = W; fgCanvas.height = H;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // ---------- Snow system ----------
+    function makeFlakes(count, speedMin, speedMax, sizeMin, sizeMax) {
+      const flakes = [];
+      for (let i = 0; i < count; i++) {
+        flakes.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: sizeMin + Math.random() * (sizeMax - sizeMin),
+          v: speedMin + Math.random() * (speedMax - speedMin),
+          sway: (Math.random() * 0.6 + 0.2) * (Math.random() < 0.5 ? -1 : 1),
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+      return flakes;
+    }
+
+    let bgFlakes = makeFlakes(140, 0.4, 1.0, 1.0, 2.2);   // background soft snow
+    let fgFlakes = makeFlakes(90, 0.8, 1.8, 2.0, 3.8);    // foreground prominent snow
+    let snowBoost = 0; // toggled by Snow+ button
+
+    function step(flakes, ctx, alpha) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#ffffff';
+      for (const f of flakes) {
+        f.phase += 0.01;
+        f.x += Math.sin(f.phase) * f.sway;
+        f.y += f.v + snowBoost * 0.6;
+
+        if (f.y > H + 10) { f.y = -10; f.x = Math.random() * W; }
+        if (f.x < -10) f.x = W + 10;
+        if (f.x > W + 10) f.x = -10;
+
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function loop() {
+      step(bgFlakes, bgCtx, 0.55);
+      step(fgFlakes, fgCtx, 0.95);
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    // ---------- Dropdown toggles ----------
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const panel = document.querySelector(btn.dataset.target);
+        const isOpen = panel.classList.toggle('open');
+        btn.textContent = isOpen ? 'Close' : 'Open';
+      });
+    });
+
+    // ---------- Audio controls ----------
+    const audio = document.getElementById('bgAudio');
+    const playPause = document.getElementById('playPause');
+    const mute = document.getElementById('mute');
+    const volume = document.getElementById('volume');
+
+    // Respect autoplay policies: only play on user interaction
+    let hasInteracted = false;
+    function ensurePlay() {
+      if (!hasInteracted) { hasInteracted = true; audio.play().catch(() => {}); }
+    }
+
+    playPause.addEventListener('click', () => {
+      ensurePlay();
+      if (audio.paused) {
+        audio.play().catch(() => {});
+        playPause.innerHTML = '<span class="icon">🎶</span>Pause';
+      } else {
+        audio.pause();
+        playPause.innerHTML = '<span class="icon">🎶</span>Play';
+      }
+    });
+
+    mute.addEventListener('click', () => {
+      ensurePlay();
+      audio.muted = !audio.muted;
+      mute.innerHTML = audio.muted
+        ? '<span class="icon">🔈</span>Unmute'
+        : '<span class="icon">🔇</span>Mute';
+    });
+
+    volume.addEventListener('input', () => {
+      audio.volume = parseFloat(volume.value);
+    });
+
+    // ---------- Snow intensity toggle ----------
+    const toggleSnow = document.getElementById('toggleSnow');
+    toggleSnow.addEventListener('click', () => {
+      snowBoost = snowBoost === 0 ? 1 : 0;
+      toggleSnow.innerHTML = snowBoost
+        ? '<span class="icon">❄️</span>Snow-'
+        : '<span class="icon">❄️</span>Snow+';
+    });
+
+    // Optional: Start with gentle audio volume
+    audio.volume = parseFloat(volume.value);
+  </script>
+</body>
+</html>
